@@ -24,12 +24,12 @@ export const Login: React.FC = () => {
       <div className="absolute inset-0 bg-navyDark/80 mix-blend-multiply"></div>
 
       <div className="relative z-10 w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight flex flex-col">
-            <span className="text-navyDark">Missie Christian</span>
-            <span className="text-brightRed">College</span>
-          </h1>
-          <p className="mt-2 text-sm text-gray-500 font-medium italic">"Best of the Rest"</p>
+        <div className="flex flex-col items-center text-center mb-8">
+          <img
+            src="/logo.jpg"
+            alt="Missie Christian College Logo"
+            className="w-32 h-auto rounded-xl shadow-md mb-4 object-contain bg-white"
+          />
         </div>
 
         {/* Toggle */}

@@ -34,12 +34,12 @@ export const DashboardLayout: React.FC = () => {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div className="w-64 bg-navyDark text-white flex flex-col">
-        <div className="p-6 flex flex-col items-center border-b border-navy/50">
-          <h1 className="text-2xl font-bold text-center tracking-tight flex flex-col">
-            <span className="text-white">Missie Christian</span>
-            <span className="text-brightRed">College</span>
-          </h1>
-          <p className="mt-2 text-sm text-gold italic font-medium">"Best of the Rest"</p>
+        <div className="p-6 flex flex-col items-center border-b border-navy/50 text-center">
+          <img
+            src="/logo.jpg"
+            alt="Missie Christian College Logo"
+            className="w-32 h-auto rounded-lg shadow-md mb-4 object-contain bg-white"
+          />
         </div>
 
         <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
