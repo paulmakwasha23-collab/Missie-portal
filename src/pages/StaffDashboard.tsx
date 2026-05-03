@@ -15,6 +15,7 @@ export const StaffDashboard: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState(classes[0]);
   const [students, setStudents] = useState(mockStudents);
   const [showToast, setShowToast] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleMarkChange = (id: string, value: string) => {
     setStudents(students.map(student =>
@@ -22,10 +23,46 @@ export const StaffDashboard: React.FC = () => {
     ));
   };
 
-  const handleSave = () => {
-    // In a real app, send data to backend here
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+  const convertMarkToGrade = (mark: number): string => {
+    if (mark >= 80) return 'A';
+    if (mark >= 70) return 'B';
+    if (mark >= 60) return 'C';
+    if (mark >= 50) return 'D';
+    return 'U';
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const submissions = students
+        .filter(student => student.mark !== '')
+        .map(async (student) => {
+          const payload = {
+            student_id: student.studentId,
+            subject: 'Mathematics', // Hardcoding subject for this demo since the UI doesn't have it
+            level: selectedClass.includes('Form 4') ? 'O-Level' : 'A-Level',
+            grade: convertMarkToGrade(Number(student.mark)),
+          };
+
+          return fetch('https://script.google.com/macros/s/AKfycbwDbkLnrOi1Nk6HBeh8P-HYZs7uyY0X9RIOCQ4u4sbmu5ZTE6ZDTJPniZYb2jbAhH6f/exec', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+        });
+
+      await Promise.all(submissions);
+
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+
+      // Clear marks after saving
+      setStudents(students.map(s => ({ ...s, mark: '' })));
+    } catch (error) {
+      console.error("Failed to save grades:", error);
+      alert("Failed to save grades. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -46,10 +83,13 @@ export const StaffDashboard: React.FC = () => {
 
         <button
           onClick={handleSave}
-          className="flex items-center px-4 py-2 bg-navy text-white rounded-lg hover:bg-navyDark transition-colors shadow-sm"
+          disabled={isSaving}
+          className={`flex items-center px-4 py-2 text-white rounded-lg transition-colors shadow-sm ${
+            isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-navy hover:bg-navyDark'
+          }`}
         >
-          <Save className="h-4 w-4 mr-2" />
-          Save Grades
+          <Save className={`h-4 w-4 mr-2 ${isSaving ? 'animate-pulse' : ''}`} />
+          {isSaving ? 'Saving...' : 'Save Grades'}
         </button>
       </div>
 

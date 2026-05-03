@@ -1,16 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-// Mock Data representing ZIMSEC/Cambridge subjects
-const mockGrades = [
-  { id: 1, subject: 'Mathematics', level: 'A-Level', grade: 'A', status: 'Final' },
-  { id: 2, subject: 'Physics', level: 'A-Level', grade: 'B', status: 'Final' },
-  { id: 3, subject: 'Chemistry', level: 'A-Level', grade: 'A*', status: 'Final' },
-  { id: 4, subject: 'Accounts', level: 'O-Level', grade: 'A', status: 'Mock' },
-  { id: 5, subject: 'Business Studies', level: 'O-Level', grade: 'C', status: 'Mock' },
-  { id: 6, subject: 'Biology', level: 'A-Level', grade: 'B', status: 'Mock' },
-];
+interface Grade {
+  student_id: string;
+  subject: string;
+  level: string;
+  grade: string;
+  status?: string; // Optional since API doesn't seem to provide it currently
+}
 
 export const StudentDashboard: React.FC = () => {
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbwDbkLnrOi1Nk6HBeh8P-HYZs7uyY0X9RIOCQ4u4sbmu5ZTE6ZDTJPniZYb2jbAhH6f/exec?action=getGrades&student_id=MCC-001');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setGrades(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch grades');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGrades();
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -61,24 +82,44 @@ export const StudentDashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {mockGrades.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{item.subject}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{item.level}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      {item.grade}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{item.status}</div>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
+                    Loading grades...
                   </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-red-500">
+                    {error}
+                  </td>
+                </tr>
+              ) : grades.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
+                    No grades found.
+                  </td>
+                </tr>
+              ) : (
+                grades.map((item, index) => (
+                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{item.subject}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">{item.level}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {item.grade}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">{item.status || 'Final'}</div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
