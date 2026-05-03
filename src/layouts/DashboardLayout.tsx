@@ -36,9 +36,9 @@ export const DashboardLayout: React.FC = () => {
       <div className="w-64 bg-navyDark text-white flex flex-col">
         <div className="p-6 flex flex-col items-center border-b border-navy/50 text-center">
           <img
-            src="/logo.jpg"
+            src="/logo.png"
             alt="Missie Christian College Logo"
-            className="w-32 h-auto rounded-lg shadow-md mb-4 object-contain bg-white"
+            className="w-40 h-auto mb-4 object-contain"
           />
         </div>
 

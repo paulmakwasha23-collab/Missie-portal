@@ -26,9 +26,9 @@ export const Login: React.FC = () => {
       <div className="relative z-10 w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl">
         <div className="flex flex-col items-center text-center mb-8">
           <img
-            src="/logo.jpg"
+            src="/logo.png"
             alt="Missie Christian College Logo"
-            className="w-32 h-auto rounded-xl shadow-md mb-4 object-contain bg-white"
+            className="w-48 h-auto mb-4 object-contain"
           />
         </div>
 
