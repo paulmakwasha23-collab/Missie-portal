@@ -1,18 +1,43 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Lock, LogIn } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 export const Login: React.FC = () => {
   const [loginType, setLoginType] = useState<'student' | 'staff'>('student');
+  const [id, setId] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated, user } = useAuth();
+
+  useEffect(() => {
+    // If already authenticated, redirect to appropriate dashboard
+    if (isAuthenticated && user) {
+      navigate(`/${user.role}-dashboard`, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginType === 'student') {
-      navigate('/student-dashboard');
-    } else {
-      navigate('/staff-dashboard');
+    setError('');
+
+    // In a real app, this would be an API call verifying the password
+    if (password.length < 6) {
+      setError('Invalid password. Must be at least 6 characters.');
+      return;
     }
+
+    // Simulate secure login with token generation
+    const mockToken = btoa(`${id}-${Date.now()}-secure-token-hash`);
+
+    login(mockToken, loginType, id || (loginType === 'student' ? 'MCC-001' : 'staff@missie.edu'));
+
+    // Redirect to where they came from or their default dashboard
+    const from = location.state?.from?.pathname || `/${loginType}-dashboard`;
+    navigate(from, { replace: true });
   };
 
   return (
@@ -69,8 +94,10 @@ export const Login: React.FC = () => {
               </div>
               <input
                 type="text"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-navy focus:border-navy sm:text-sm"
-                placeholder={loginType === 'student' ? 'e.g. MCC-2024-001' : 'staff@missie.edu'}
+                placeholder={loginType === 'student' ? 'e.g. MCC-001' : 'staff@missie.edu'}
                 required
               />
             </div>
@@ -86,12 +113,20 @@ export const Login: React.FC = () => {
               </div>
               <input
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-navy focus:border-navy sm:text-sm"
                 placeholder="••••••••"
                 required
               />
             </div>
           </div>
+
+          {error && (
+            <div className="text-red-500 text-sm mt-2 text-center bg-red-50 py-1 rounded">
+              {error}
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">

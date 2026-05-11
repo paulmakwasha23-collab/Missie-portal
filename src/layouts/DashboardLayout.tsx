@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { BookOpen, GraduationCap, DollarSign, LayoutDashboard, LogOut, CheckCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface SidebarItem {
   name: string;
@@ -26,7 +27,10 @@ export const DashboardLayout: React.FC = () => {
   const isStudent = location.pathname.includes('/student-dashboard');
   const navigation = isStudent ? studentNavigation : staffNavigation;
 
+  const { logout } = useAuth();
+
   const handleLogout = () => {
+    logout();
     navigate('/login');
   };
 

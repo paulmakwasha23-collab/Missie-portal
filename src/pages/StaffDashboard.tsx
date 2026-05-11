@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Save, CheckCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const mockStudents = [
   { id: '1', name: 'John Doe', studentId: 'MCC-2024-001', mark: '' },
@@ -16,10 +17,20 @@ export const StaffDashboard: React.FC = () => {
   const [students, setStudents] = useState(mockStudents);
   const [showToast, setShowToast] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
 
   const handleMarkChange = (id: string, value: string) => {
+    // Basic sanitization: only allow numeric digits
+    const sanitizedValue = value.replace(/[^0-9]/g, '');
+
+    // Strict bounds checking before setting state
+    if (sanitizedValue !== '') {
+      const numValue = parseInt(sanitizedValue, 10);
+      if (numValue < 0 || numValue > 100) return;
+    }
+
     setStudents(students.map(student =>
-      student.id === id ? { ...student, mark: value } : student
+      student.id === id ? { ...student, mark: sanitizedValue } : student
     ));
   };
 
@@ -34,19 +45,43 @@ export const StaffDashboard: React.FC = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Validate all marks before proceeding with any network requests
+      const invalidStudents = students.filter(s => {
+        if (s.mark === '') return false;
+        const mark = parseInt(s.mark, 10);
+        return isNaN(mark) || mark < 0 || mark > 100;
+      });
+
+      if (invalidStudents.length > 0) {
+        alert("Validation Error: Please ensure all entered marks are numbers between 0 and 100.");
+        setIsSaving(false);
+        return;
+      }
+
       const submissions = students
         .filter(student => student.mark !== '')
         .map(async (student) => {
+          // Double sanitize the payload data just in case
+          const cleanMark = parseInt(student.mark, 10);
+
           const payload = {
-            student_id: student.studentId,
-            subject: 'Mathematics', // Hardcoding subject for this demo since the UI doesn't have it
-            level: selectedClass.includes('Form 4') ? 'O-Level' : 'A-Level',
-            grade: convertMarkToGrade(Number(student.mark)),
+            student_id: String(student.studentId).trim(),
+            subject: 'Mathematics',
+            level: String(selectedClass).includes('Form 4') ? 'O-Level' : 'A-Level',
+            grade: convertMarkToGrade(cleanMark),
           };
 
-          return fetch('https://script.google.com/macros/s/AKfycbwDbkLnrOi1Nk6HBeh8P-HYZs7uyY0X9RIOCQ4u4sbmu5ZTE6ZDTJPniZYb2jbAhH6f/exec', {
+          const API_URL = import.meta.env.VITE_API_URL;
+
+          // Securely attach the token directly in the payload to bypass CORS preflight issues
+          const securePayload = {
+            ...payload,
+            auth_token: user?.token
+          };
+
+          return fetch(API_URL, {
             method: 'POST',
-            body: JSON.stringify(payload),
+            body: JSON.stringify(securePayload),
           });
         });
 

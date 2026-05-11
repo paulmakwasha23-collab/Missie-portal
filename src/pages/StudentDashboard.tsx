@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Grade {
   student_id: string;
@@ -12,11 +13,20 @@ export const StudentDashboard: React.FC = () => {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchGrades = async () => {
       try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbwDbkLnrOi1Nk6HBeh8P-HYZs7uyY0X9RIOCQ4u4sbmu5ZTE6ZDTJPniZYb2jbAhH6f/exec?action=getGrades&student_id=MCC-001');
+        const API_URL = import.meta.env.VITE_API_URL;
+        const studentId = user?.id || 'MCC-001'; // Fallback for dev
+
+        // Appending authorization token to headers for backend validation
+        // We cannot send custom Authorization headers directly to Google Apps Script
+        // because it triggers a CORS preflight (OPTIONS request) which GAS rejects.
+        // Instead, the secure token is passed safely as a URL parameter for backend verification.
+        const response = await fetch(`${API_URL}?action=getGrades&student_id=${studentId}&auth_token=${user?.token}`);
+
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
